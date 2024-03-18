@@ -11,9 +11,33 @@ power_off() {
     sleep "$1"m && echo "Powering off..." && sudo shutdown -h now
 }
 
+# Function to cancel scheduled power-off
+cancel_power_off() {
+    echo "Cancelling scheduled power-off."
+    sudo shutdown -c
+}
+
 # Main program
 clear
 echo "Welcome to Device Power Off Scheduler"
+
+# Check if there's an existing scheduled power-off
+if sudo shutdown -q --list | grep -q "shut down"; then
+    echo "There is an existing scheduled power-off."
+    read -p "Do you want to cancel it? (yes/no): " cancel_choice
+
+    case "$cancel_choice" in
+        yes|YES|y|Y)
+            cancel_power_off
+            ;;
+        no|NO|n|N)
+            ;;
+        *)
+            echo "Invalid choice. Proceeding with new schedule."
+            ;;
+    esac
+fi
+
 ask_minutes
 
 # Loop to handle invalid input
