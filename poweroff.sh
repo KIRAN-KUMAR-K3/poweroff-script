@@ -47,16 +47,18 @@ while ! [[ "$minutes" =~ ^[0-9]+$ ]]; do
 done
 
 echo "Device will power off in $minutes minutes."
-read -p "Do you want to proceed? (yes/no): " choice
+read -p "Do you want to proceed or exit? (proceed/exit): " choice
 
 case "$choice" in
-    yes|YES|y|Y)
+    proceed)
         power_off "$minutes"
         ;;
-    no|NO|n|N)
-        echo "Operation canceled."
+    exit)
+        echo "Exiting the script."
+        exit
         ;;
     *)
-        echo "Invalid choice. Operation canceled."
+        echo "Invalid choice. Exiting the script."
+        exit
         ;;
 esac
