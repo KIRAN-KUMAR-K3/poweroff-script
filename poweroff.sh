@@ -8,7 +8,7 @@ ask_minutes() {
 # Function to power off the device after specified minutes
 power_off() {
     echo "Device will power off in $1 minutes."
-    sleep "$1"m && echo "Powering off..." && sudo shutdown -h now
+    sudo shutdown -h "+$1"
 }
 
 # Function to cancel scheduled power-off
@@ -30,10 +30,8 @@ if sudo shutdown -q --list | grep -q "shut down"; then
         yes|YES|y|Y)
             cancel_power_off
             ;;
-        no|NO|n|N)
-            ;;
         *)
-            echo "Invalid choice. Proceeding with new schedule."
+            echo "Proceeding with new schedule."
             ;;
     esac
 fi
