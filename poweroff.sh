@@ -1,62 +1,53 @@
 #!/bin/bash
 
-# Function to display a message and wait for user input
-ask_minutes() {
-    read -p "Enter the number of minutes after which the device should power off: " minutes
+# Function to schedule power-off
+schedule_power_off() {
+    # Prompt user to enter the number of minutes to schedule power-off
+    minutes=$(zenity --entry --title="Schedule Power-Off" --text="Enter the number of minutes to schedule power-off:" --entry-text "60")
+    
+    # Validate user input
+    if [[ -z $minutes ]]; then
+        zenity --error --text="Invalid input. Please enter a valid number of minutes."
+        return
+    fi
+
+    # Confirm power-off schedule
+    zenity --question --title="Confirm Power-Off" --text="Are you sure you want to schedule a power-off in $minutes minutes?"
+
+    # If user confirms, schedule power-off
+    if [[ $? -eq 0 ]]; then
+        sudo shutdown -h +$minutes
+        zenity --info --text="Power-off scheduled in $minutes minutes."
+    fi
 }
 
-# Function to power off the device after specified minutes
-power_off() {
-    echo "Device will power off in $1 minutes."
-    sudo shutdown -h "+$1"
-}
-
-# Function to cancel scheduled power-off
+# Function to cancel power-off
 cancel_power_off() {
-    echo "Cancelling scheduled power-off."
-    sudo shutdown -c
+    # Prompt user to confirm power-off cancellation
+    zenity --question --title="Cancel Power-Off" --text="Are you sure you want to cancel the scheduled power-off?"
+
+    # If user confirms, cancel power-off
+    if [[ $? -eq 0 ]]; then
+        sudo shutdown -c
+        zenity --info --text="Scheduled power-off cancelled."
+    fi
 }
 
-# Main program
-clear
-echo "Welcome to Device Power Off Scheduler"
+# Main menu
+choice=$(zenity --list --title="Power-Off Scheduler" --text="Choose an option:" --column="Options" "Schedule Power-Off" "Cancel Scheduled Power-Off" "Exit")
 
-# Check if there's an existing scheduled power-off
-if sudo shutdown -q --list | grep -q "shut down"; then
-    echo "There is an existing scheduled power-off."
-    read -p "Do you want to cancel it? (yes/no): " cancel_choice
-
-    case "$cancel_choice" in
-        yes|YES|y|Y)
-            cancel_power_off
-            ;;
-        *)
-            echo "Proceeding with new schedule."
-            ;;
-    esac
-fi
-
-ask_minutes
-
-# Loop to handle invalid input
-while ! [[ "$minutes" =~ ^[0-9]+$ ]]; do
-    echo "Invalid input. Please enter a valid number of minutes."
-    ask_minutes
-done
-
-echo "Device will power off in $minutes minutes."
-read -p "Do you want to proceed or exit? (proceed/exit): " choice
-
-case "$choice" in
-    proceed)
-        power_off "$minutes"
+# Perform action based on user choice
+case $choice in
+    "Schedule Power-Off")
+        schedule_power_off
         ;;
-    exit)
-        echo "Exiting the script."
+    "Cancel Scheduled Power-Off")
+        cancel_power_off
+        ;;
+    "Exit")
         exit
         ;;
     *)
-        echo "Invalid choice. Exiting the script."
-        exit
+        zenity --error --text="Invalid choice."
         ;;
 esac
